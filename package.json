@@ -2,7 +2,7 @@
   "name": "gtbook-vscode",
   "displayName": "gtbook-vscode",
   "description": "gtbook vscode extension",
-  "publisher": "ganfantech",
+  "publisher": "ganfan-tech",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.75.0"
