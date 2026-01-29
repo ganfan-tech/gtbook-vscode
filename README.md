@@ -1,6 +1,4 @@
-# gtbook-vscode README
-
-This is the README for your extension "gtbook-vscode". After writing up a brief description, we recommend including the following sections.
+# gtbook-vscode
 
 ## Features
 
@@ -69,16 +67,8 @@ chapters:
 
 ```
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
 ## Release Notes
-
-Users appreciate release notes as you update your extension.
 
 ### 0.0.1
 
-Added features X.
-
----
-
-**Enjoy!**
+GTBook vscode extension 0.0.1
