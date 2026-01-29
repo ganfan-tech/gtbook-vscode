@@ -4,68 +4,81 @@ This is the README for your extension "gtbook-vscode". After writing up a brief 
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+GTBook vscode extension helps you write a book by markdown and the book structure is defined in gtbook.yaml.
 
-For example if there is an image subfolder under your extension project workspace:
+You can create, move, rename, delete chapters and sections.
 
-\!\[feature X\]\(images/feature-x.png\)
+![GTBook](resources/images/image.png)
+
+``` yaml
+name: iOS
+id: gtbook
+createdTime: 1769329493671
+updatedTime: 1769698706817
+chapters:
+  - id: be35a275-ce72-441a-9ecb-6386943934d9
+    title: "1"
+    createdTime: 1769591793764
+    updatedTime: 1769591793764
+    chapters:
+      - id: 3bea2817-33c6-4043-8422-9c5a45f02e24
+        title: "1.1"
+        createdTime: 1769595769025
+        updatedTime: 1769595769025
+        chapters: []
+      - id: 871c23ba-fd97-4b00-b8e0-3103f0db97a4
+        title: "1.2"
+        createdTime: 1769595775064
+        updatedTime: 1769595775064
+        chapters:
+          - id: d8b15bde-d0ac-40df-aea9-40ba9ebef6ca
+            title: 1.2.1
+            createdTime: 1769595780084
+            updatedTime: 1769595780084
+            chapters: []
+          - id: e1380ead-da90-4c54-b417-e5b508ec3df0
+            title: 1.2.2
+            createdTime: 1769595777450
+            updatedTime: 1769595777450
+            chapters: []
+  - id: 7bfb142d-32b2-4260-b3c6-012b75aedd96
+    title: "2"
+    createdTime: 1769595771820
+    updatedTime: 1769595771820
+    chapters:
+      - id: 3733c3ff-b143-49d9-8e69-a3f5ea38a692
+        title: "2.1"
+        createdTime: 1769591798755
+        updatedTime: 1769591798755
+        chapters: []
+      - id: 99e33c53-b3af-4312-99e6-7b3d66066c5f
+        title: "2.2"
+        createdTime: 1769653095703
+        updatedTime: 1769653095703
+        chapters: []
+      - id: 3b8e8dd1-e1bb-4248-849d-e2d63f4ce54a
+        title: "2.3"
+        createdTime: 1769653087870
+        updatedTime: 1769653087870
+        chapters: []
+  - id: 6613e1c6-dc59-4d72-8b24-94f84bb48bca
+    title: "3"
+    createdTime: 1769595782850
+    updatedTime: 1769595782850
+    chapters: []
+
+```
 
 > Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
 
 ## Release Notes
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.0
+### 0.0.1
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Added features X.
 
 ---
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**
