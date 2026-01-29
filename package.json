@@ -2,9 +2,10 @@
   "name": "gtbook-vscode",
   "displayName": "gtbook-vscode",
   "description": "gtbook vscode extension",
+  "publisher": "ganfantech",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Other"
@@ -12,12 +13,126 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gtbook-explorer",
+          "title": "GTBook",
+          "icon": "resources/book.svg"
+        }
+      ]
+    },
+    "views": {
+      "gtbook-explorer": [
+        {
+          "id": "gtbook_toc",
+          "name": "GTBook Chapters"
+        },
+        {
+          "id": "gtbook_assets",
+          "name": "Assets Explorer"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "gtbook-vscode.helloWorld",
-        "title": "Hello World"
+        "category": "GTBook",
+        "title": "Refresh",
+        "command": "gtbook_toc.refresh",
+        "icon": "resources/refresh.svg"
+      },
+      {
+        "category": "GTBook",
+        "title": "Open Chapter",
+        "command": "gtbook_toc.openChapter"
+      },
+      {
+        "category": "GTBook",
+        "title": "Rename Chapter",
+        "command": "gtbook_toc.renameChapter",
+        "icon": "resources/edit.svg"
+      },
+      {
+        "category": "GTBook",
+        "title": "New Chapter",
+        "command": "gtbook_toc.newChapter",
+        "icon": "resources/document.svg"
+      },
+      {
+        "category": "GTBook",
+        "title": "Delete Chapter",
+        "command": "gtbook_toc.deleteChapter"
+      },
+      {
+        "command": "gtbook_toc.moveUp",
+        "title": "Move Up",
+        "category": "GTBook",
+        "icon": "resources/arrow_up.svg"
+      },
+      {
+        "command": "gtbook_toc.moveDown",
+        "title": "Move Down",
+        "category": "GTBook",
+        "icon": "resources/arrow_down.svg"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "gtbook_toc.openChapter",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_toc.renameChapter",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_toc.deleteChapter",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_toc.moveUp",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_toc.moveDown",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "gtbook_toc.refresh",
+          "when": "view == gtbook_toc",
+          "group": "navigation"
+        },
+        {
+          "command": "gtbook_toc.newChapter",
+          "when": "view == gtbook_toc",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gtbook_toc.renameChapter",
+          "when": "view == gtbook_toc && viewItem == chapter",
+          "group": "inline"
+        },
+        {
+          "command": "gtbook_toc.deleteChapter",
+          "when": "view == gtbook_toc && viewItem == chapter"
+        },
+        {
+          "command": "gtbook_toc.moveUp",
+          "when": "view == gtbook_toc && viewItem == chapter",
+          "group": "inline"
+        },
+        {
+          "command": "gtbook_toc.moveDown",
+          "when": "view == gtbook_toc && viewItem == chapter",
+          "group": "inline"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -34,16 +149,19 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.95.0",
     "@types/mocha": "^10.0.9",
-    "@types/node": "20.x",
+    "@types/node": "24.x",
+    "@types/vscode": "^1.95.0",
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.7.0",
-    "eslint": "^9.13.0",
-    "esbuild": "^0.24.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.6.3",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.13.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "yaml": "^2.8.2"
   }
 }
