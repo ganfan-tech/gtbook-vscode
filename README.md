@@ -69,6 +69,10 @@ chapters:
 
 ## Release Notes
 
+### 0.0.2
+
+fix icons issue
+
 ### 0.0.1
 
 GTBook vscode extension 0.0.1

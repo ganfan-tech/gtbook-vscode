@@ -3,7 +3,7 @@
   "displayName": "gtbook-vscode",
   "description": "gtbook vscode extension",
   "publisher": "ganfan-tech",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -24,7 +24,7 @@
         {
           "id": "gtbook-explorer",
           "title": "GTBook",
-          "icon": "resources/book.svg"
+          "icon": "resources/icons/book.svg"
         }
       ]
     },
@@ -45,7 +45,7 @@
         "category": "GTBook",
         "title": "Refresh",
         "command": "gtbook_toc.refresh",
-        "icon": "resources/refresh.svg"
+        "icon": "resources/icons/refresh.svg"
       },
       {
         "category": "GTBook",
@@ -56,13 +56,13 @@
         "category": "GTBook",
         "title": "Rename Chapter",
         "command": "gtbook_toc.renameChapter",
-        "icon": "resources/edit.svg"
+        "icon": "resources/icons/edit.svg"
       },
       {
         "category": "GTBook",
         "title": "New Chapter",
         "command": "gtbook_toc.newChapter",
-        "icon": "resources/document.svg"
+        "icon": "resources/icons/document.svg"
       },
       {
         "category": "GTBook",
@@ -73,13 +73,13 @@
         "command": "gtbook_toc.moveUp",
         "title": "Move Up",
         "category": "GTBook",
-        "icon": "resources/arrow_up.svg"
+        "icon": "resources/icons/arrow_up.svg"
       },
       {
         "command": "gtbook_toc.moveDown",
         "title": "Move Down",
         "category": "GTBook",
-        "icon": "resources/arrow_down.svg"
+        "icon": "resources/icons/arrow_down.svg"
       }
     ],
     "menus": {
