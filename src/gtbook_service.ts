@@ -1,8 +1,7 @@
-import * as fs from "fs";
 import * as fsp from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
-import { randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
 import { Chapter, GTBookMeta } from "./types";
 import { metaFile } from "./constants";
@@ -81,7 +80,7 @@ export class GTBook {
 
   async newChapter(chapter: Chapter | undefined, newTitle: string) {
     const bookDir = path.dirname(this.gtbookMetaPath);
-    const id = randomUUID();
+    const id = `${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;
     const newChapter = {
       id: id,
       title: newTitle,

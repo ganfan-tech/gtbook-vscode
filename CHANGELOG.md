@@ -4,6 +4,10 @@ All notable changes to the "gtbook-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.4]
+
+- update random algorithm for chapter id
+
 ## [0.0.3]
 
 - support multiroot workspaces in vscode
