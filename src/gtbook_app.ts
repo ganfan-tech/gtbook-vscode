@@ -2,10 +2,10 @@ import * as vscode from "vscode";
 import * as fsp from "fs/promises";
 import * as path from "path";
 
-import { GTBook } from "./gtbook_service";
+import { GTBook } from "./gtbook";
 import { metaFile } from "./constants";
 
-export class GTBooks {
+export class GTBookApp {
   private books = new Map<string, GTBook>();
 
   constructor(

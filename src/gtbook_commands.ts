@@ -3,10 +3,10 @@
 import * as vscode from "vscode";
 import {
   BookNode,
-  GTBooksProvider,
+  GTBookProvider,
   TreeItemNode,
   ChapterNode,
-} from "./gtbook_toc";
+} from "./gtbook_provider";
 import path from "path";
 import * as fsp from "fs/promises";
 import { INVALID_CHARS_REGEX, metaFile } from "./constants";
@@ -14,13 +14,14 @@ import { exists, defaultGtbookYaml } from "./utils";
 
 export const registerCommands = (
   gtbookExplorerTreeView: vscode.TreeView<TreeItemNode>,
-  gtbooksProvider: GTBooksProvider,
+  gtbookProvider: GTBookProvider,
   context: vscode.ExtensionContext,
 ) => {
-  const gtbooks = gtbooksProvider.gtbooks;
+  const gtbookApp = gtbookProvider.gtbookApp;
+
   const refreshCommand = vscode.commands.registerCommand(
     "gtbook_explorer.refresh",
-    () => gtbooksProvider.refresh(),
+    () => gtbookProvider.refresh(),
   );
 
   const newChapterCommand = vscode.commands.registerCommand(
@@ -43,7 +44,7 @@ export const registerCommands = (
         return;
       }
 
-      const gtbook = gtbooks.getBook(node.gtbook.folderPath);
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
@@ -55,7 +56,7 @@ export const registerCommands = (
       }
 
       node.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-      gtbooksProvider.refresh(node);
+      gtbookProvider.refresh(node);
 
       await gtbookExplorerTreeView.reveal(node, {
         expand: true,
@@ -76,13 +77,13 @@ export const registerCommands = (
         return;
       }
 
-      const gtbook = gtbooks.getBook(node.gtbook.folderPath);
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
 
       gtbook.deleteChapter(node.chapter);
-      gtbooksProvider.refresh(node);
+      gtbookProvider.refresh(node);
     },
   );
 
@@ -117,36 +118,36 @@ export const registerCommands = (
         return;
       }
 
-      const gtbook = gtbooks.getBook(node.gtbook.folderPath);
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
 
       gtbook.renameChapter(node.chapter.id, title);
-      gtbooksProvider.refresh();
+      gtbookProvider.refresh();
     },
   );
 
   const moveUpCommand = vscode.commands.registerCommand(
     "gtbook_explorer.moveUp",
     (node: ChapterNode) => {
-      const gtbook = gtbooks.getBook(node.gtbook.folderPath);
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
       gtbook.moveUp(node.chapter);
-      gtbooksProvider.refresh(node);
+      gtbookProvider.refresh(node);
     },
   );
   const moveDownCommand = vscode.commands.registerCommand(
     "gtbook_explorer.moveDown",
     (node: ChapterNode) => {
-      const gtbook = gtbooks.getBook(node.gtbook.folderPath);
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
       gtbook.moveDown(node.chapter);
-      gtbooksProvider.refresh(node);
+      gtbookProvider.refresh(node);
     },
   );
 
@@ -212,7 +213,7 @@ export const registerCommands = (
           `Failed to create book: ${err.message ?? err}`,
         );
       }
-      gtbooksProvider.refresh();
+      gtbookProvider.refresh();
     },
   );
 

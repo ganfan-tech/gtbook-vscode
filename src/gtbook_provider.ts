@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { GTBook } from "./gtbook_service";
-import { GTBooks } from "./gtbooks";
+import { GTBook } from "./gtbook";
+import { GTBookApp } from "./gtbook_app";
 import { Chapter } from "./types";
 
-export class GTBooksProvider
+export class GTBookProvider
   implements
     vscode.TreeDataProvider<TreeItemNode>,
     vscode.TreeDragAndDropController<TreeItemNode>
@@ -22,7 +22,7 @@ export class GTBooksProvider
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  constructor(public gtbooks: GTBooks) {}
+  constructor(public gtbookApp: GTBookApp) {}
 
   getTreeItem(element: TreeItemNode): vscode.TreeItem {
     return element;
@@ -31,7 +31,7 @@ export class GTBooksProvider
   getChildren(element?: TreeItemNode) {
     // 根节点：workspace folders
     if (!element) {
-      return this.gtbooks.listBooks().map((gtbook) => new BookNode(gtbook));
+      return this.gtbookApp.listBooks().map((gtbook) => new BookNode(gtbook));
     }
 
     // folder 下的章节
@@ -57,7 +57,7 @@ export class GTBooksProvider
     }
 
     if (element instanceof ChapterNode) {
-      const gtbook = this.gtbooks.getBook(element.gtbook.folderPath);
+      const gtbook = this.gtbookApp.getBook(element.gtbook.folderPath);
       if (!gtbook) {
         return;
       }
@@ -103,7 +103,7 @@ export class GTBooksProvider
       return;
     }
 
-    const targetBook = this.gtbooks.getBook(targetBookFolderPath);
+    const targetBook = this.gtbookApp.getBook(targetBookFolderPath);
     if (!targetBook) {
       return;
     }
