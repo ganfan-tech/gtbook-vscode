@@ -1,13 +1,18 @@
 import * as fsp from "fs/promises";
 import * as path from "path";
 import * as yaml from "yaml";
+import * as vscode from "vscode";
 import { randomBytes } from "node:crypto";
+import { Repository } from "./types.git";
 
 import { Chapter, GTBookMeta } from "./types";
 import { metaFile } from "./constants";
+import { git } from "./utils";
 
 export class GTBook {
   private _meta?: GTBookMeta;
+
+  private _repo?: Repository;
 
   private id2Pid: Map<string, string | null> = new Map();
   private id2Chapter: Map<string, Chapter> = new Map();
@@ -15,6 +20,7 @@ export class GTBook {
   constructor(
     public folderPath: string,
     private gtbookMetaPath: string,
+    private gtbookEventEmitter: vscode.EventEmitter<GTBook | undefined>,
     gtbookMetaContent: string,
   ) {
     this.gtbookMetaPath = path.join(this.folderPath, metaFile);
@@ -32,10 +38,19 @@ export class GTBook {
     this._meta.chapters.forEach((chapterInfo: any) => {
       this._buildChapterItem(chapterInfo);
     });
+
+    this._subscribeGit();
   }
 
   get meta(): GTBookMeta {
     return this._meta!;
+  }
+
+  get repo(): Repository | undefined {
+    return this._repo;
+  }
+  set repo(repo: Repository | undefined) {
+    this._repo = repo;
   }
 
   async saveToMetaFile() {
@@ -45,6 +60,47 @@ export class GTBook {
       yaml.stringify(this._meta),
       "utf-8",
     );
+  }
+
+  _subscribeGit() {
+    git.onDidChangeState(() => {
+      this._loadRepo();
+    });
+  }
+
+  _loadRepo() {
+    const repo = git.repositories.find(
+      (repo) => repo.rootUri.path === this.folderPath,
+    );
+
+    this._repo = repo;
+
+    this._repo?.state.onDidChange(() => {
+      this.gtbookEventEmitter.fire(this);
+    });
+
+    return this._repo;
+  }
+
+  gitStatus(): string {
+    const repo = this._repo;
+
+    if (!repo) {
+      return "";
+    }
+
+    const messages = [];
+    const changed =
+      repo.state.workingTreeChanges.length + repo.state.indexChanges.length;
+
+    if (changed > 0) {
+      messages.push(`${changed} files changed`);
+    }
+    const unpushed = repo.state.HEAD?.ahead ?? 0;
+    if (unpushed > 0) {
+      messages.push(`${unpushed} unpushed commit${unpushed === 1 ? "" : "s"}`);
+    }
+    return messages.join(", ");
   }
 
   getTree(): Chapter[] {

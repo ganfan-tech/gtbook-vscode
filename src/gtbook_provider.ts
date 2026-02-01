@@ -14,15 +14,27 @@ export class GTBookProvider
   private _onDidChangeTreeData: vscode.EventEmitter<
     (TreeItemNode | undefined)[] | undefined
   > = new vscode.EventEmitter<(TreeItemNode | undefined)[] | undefined>();
-  // We want to use an array as the event type, but the API for this is currently being finalized. Until it's finalized, use any.
+
   public onDidChangeTreeData: vscode.Event<any> =
     this._onDidChangeTreeData.event;
 
   public refresh(node?: TreeItemNode): void {
     this._onDidChangeTreeData.fire(undefined);
   }
+  public refreshBook(node: BookNode): void {
+    this._onDidChangeTreeData.fire([node]);
+  }
+  constructor(
+    public gtbookApp: GTBookApp,
+  ) {
+    this.gtbookApp.onDataChanged((gtbook) => {
+      if (gtbook) {
+        this.refreshBook(new BookNode(gtbook));
+      }
+      this.refresh();
+    });
+  }
 
-  constructor(public gtbookApp: GTBookApp) {}
 
   getTreeItem(element: TreeItemNode): vscode.TreeItem {
     return element;
@@ -150,6 +162,9 @@ export class BookNode extends vscode.TreeItem {
   constructor(public readonly gtbook: GTBook) {
     super(gtbook.meta.title, vscode.TreeItemCollapsibleState.Collapsed);
     this.contextValue = "gtbook.book";
+
+    const status = gtbook.gitStatus();
+    this.description = status;
 
     this.iconPath = new vscode.ThemeIcon("book");
   }

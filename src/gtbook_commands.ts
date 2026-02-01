@@ -10,7 +10,7 @@ import {
 import path from "path";
 import * as fsp from "fs/promises";
 import { INVALID_CHARS_REGEX, metaFile } from "./constants";
-import { exists, defaultGtbookYaml } from "./utils";
+import { exists, defaultGtbookYaml, git } from "./utils";
 
 export const registerCommands = (
   gtbookExplorerTreeView: vscode.TreeView<TreeItemNode>,
@@ -22,6 +22,98 @@ export const registerCommands = (
   const refreshCommand = vscode.commands.registerCommand(
     "gtbook_explorer.refresh",
     () => gtbookProvider.refresh(),
+  );
+
+  const gitCommitChangesCommand = vscode.commands.registerCommand(
+    "gtbook_explorer.gitCommitChanges",
+    async (node: BookNode) => {
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
+      if (!gtbook) {
+        return;
+      }
+
+      if (!gtbook.repo) {
+        vscode.window.showErrorMessage(
+          `${gtbook.folderPath} is not a git repository`,
+        );
+        // 找不到对应的repo，提示是否初始化git仓库
+        const result = await vscode.window.showInformationMessage(
+          `Cannot find git repository for ${gtbook.folderPath}. Do you want to initialize a git repository?`,
+          "Yes",
+          "No",
+        );
+        if (result === "Yes") {
+          let newRepo = await git.init(vscode.Uri.file(gtbook.folderPath));
+          if (newRepo) {
+            gtbook.repo = newRepo;
+          } else {
+            const message = `Failed to initialize git repository for ${gtbook.folderPath}`;
+            vscode.window.showErrorMessage(message);
+          }
+        }
+      }
+
+      if (!gtbook.repo) {
+        return;
+      }
+
+      const msg = await vscode.window.showInputBox({
+        prompt: "Git commit message",
+        value: "gtbook: Update book content",
+      });
+
+      if (!msg) {
+        return;
+      }
+
+      try {
+        await gtbook.repo.add([path.join(gtbook.folderPath, "*")]);
+
+        await gtbook.repo.commit(msg);
+
+        vscode.window.showInformationMessage(`Committed: ${msg}`);
+      } catch (error: any) {
+        const message = `Failed to commit: ${error?.stdout}${error?.stderr}`;
+        vscode.window.showErrorMessage(message);
+      }
+    },
+  );
+
+  const gitPushToRemoteCommand = vscode.commands.registerCommand(
+    "gtbook_explorer.gitPushToRemote",
+    async (node: BookNode) => {
+      const gtbook = gtbookApp.getBook(node.gtbook.folderPath);
+      if (!gtbook) {
+        return;
+      }
+
+      if (!gtbook.repo) {
+        vscode.window.showErrorMessage(
+          `${gtbook.folderPath} is not a git repository`,
+        );
+        return;
+      }
+
+      if (!gtbook.repo.state.HEAD?.upstream) {
+        vscode.window.showErrorMessage(
+          `${gtbook.folderPath} has no upstream branch`,
+        );
+        return;
+      }
+
+      if (!gtbook.repo.state.HEAD?.ahead) {
+        vscode.window.showInformationMessage(`${gtbook.folderPath} is up-to-date`);
+        return;
+      }
+
+      try {
+        await gtbook.repo.push();
+        vscode.window.showInformationMessage(`Pushed to remote`);
+      } catch (error: any) {
+        const message = `Failed to push: ${error.stdout}${error.stderr}`;
+        vscode.window.showErrorMessage(message);
+      }
+    },
   );
 
   const newChapterCommand = vscode.commands.registerCommand(
@@ -197,9 +289,7 @@ export const registerCommands = (
           return;
         }
 
-        await fsp.mkdir(bookDir, { recursive: true });
-        const gtbookPath = path.join(bookDir, metaFile);
-        await fsp.writeFile(gtbookPath, defaultGtbookYaml(bookTitle), "utf8");
+        await gtbookApp.newBook(bookDir, bookTitle);
 
         vscode.workspace.updateWorkspaceFolders(
           vscode.workspace.workspaceFolders?.length ?? 0,
@@ -218,6 +308,8 @@ export const registerCommands = (
   );
 
   context.subscriptions.push(refreshCommand);
+  context.subscriptions.push(gitCommitChangesCommand);
+  context.subscriptions.push(gitPushToRemoteCommand);
   context.subscriptions.push(newChapterCommand);
   context.subscriptions.push(deleteChapterCommand);
   context.subscriptions.push(openChapterCommand);

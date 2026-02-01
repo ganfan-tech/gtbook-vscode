@@ -24,7 +24,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   registerCommands(gtbookExplorerTreeView, gtbookProvider, context);
 
-  gtbookApp.loadBooks().then(() => gtbookProvider.refresh());
 }
 
 // This method is called when your extension is deactivated

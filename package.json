@@ -3,7 +3,7 @@
   "displayName": "gtbook",
   "description": "gtbook vscode extension",
   "publisher": "ganfan-tech",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -18,6 +18,9 @@
   "activationEvents": [],
   "icon": "resources/images/book.png",
   "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "vscode.git"
+  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -49,6 +52,18 @@
         "title": "Refresh",
         "command": "gtbook_explorer.refresh",
         "icon": "resources/icons/refresh.svg"
+      },
+      {
+        "category": "GTBook",
+        "title": "Git Commit",
+        "command": "gtbook_explorer.gitCommitChanges",
+        "icon": "resources/icons/git_commit.svg"
+      },
+      {
+        "category": "GTBook",
+        "title": "Git Push",
+        "command": "gtbook_explorer.gitPushToRemote",
+        "icon": "resources/icons/git_push.svg"
       },
       {
         "category": "GTBook",
@@ -88,6 +103,14 @@
     "menus": {
       "commandPalette": [
         {
+          "command": "gtbook_explorer.gitCommitChanges",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_explorer.gitPushToRemote",
+          "when": "false"
+        },
+        {
           "command": "gtbook_explorer.openChapter",
           "when": "false"
         },
@@ -125,6 +148,16 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "gtbook_explorer.gitCommitChanges",
+          "when": "view == gtbook_explorer && viewItem == gtbook.book",
+          "group": "inline"
+        },
+        {
+          "command": "gtbook_explorer.gitPushToRemote",
+          "when": "view == gtbook_explorer && viewItem == gtbook.book",
+          "group": "inline"
+        },
         {
           "command": "gtbook_explorer.newChapter",
           "when": "view == gtbook_explorer",

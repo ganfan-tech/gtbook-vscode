@@ -1,4 +1,7 @@
 import * as fsp from "fs/promises";
+import * as vscode from "vscode";
+
+import { API } from "./types.git";
 
 export async function exists(p: string): Promise<boolean> {
   try {
@@ -17,3 +20,11 @@ updatedTime: ${Date.now()}
 chapters: []
 `;
 }
+
+function _git(): API {
+  const gitExtension = vscode.extensions.getExtension("vscode.git");
+  const git: API = gitExtension?.exports.getAPI(1);
+  return git;
+}
+
+export const git = _git();
