@@ -1,5 +1,17 @@
 # gtbook-vscode
 
+GTBook design decision:
+
+- One book = one workspace folder = one gtbook.yaml file = one git repository
+- Multiple books per folder and cross-folder books are NOT supported.
+
+## GTBook book detection rules
+
+- A book is a workspace folder that contains `gtbook.yaml` at its root.
+- Nested books are not supported.
+- A book never spans multiple folders.
+- Workspace folders without `gtbook.yaml` are ignored by GTBook.
+
 ## Features
 
 GTBook vscode extension helps you write a book by markdown and the book structure is defined in gtbook.yaml.
@@ -8,8 +20,8 @@ You can create, move, rename, delete chapters and sections.
 
 ![GTBook](resources/images/image.png)
 
-``` yaml
-name: iOS
+```yaml
+title: iOS
 id: gtbook
 createdTime: 1769329493671
 updatedTime: 1769698706817
@@ -64,15 +76,4 @@ chapters:
     createdTime: 1769595782850
     updatedTime: 1769595782850
     chapters: []
-
 ```
-
-## Release Notes
-
-### 0.0.2
-
-fix icons issue
-
-### 0.0.1
-
-GTBook vscode extension 0.0.1

@@ -7,7 +7,7 @@ export interface Chapter {
 }
 
 export interface GTBookMeta {
-  name: string;
+  title: string;
   createdTime: number;
   updatedTime: number;
   chapters: Chapter[];

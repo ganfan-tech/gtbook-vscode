@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
 import * as fsp from "fs/promises";
 import * as path from "path";
@@ -6,56 +5,51 @@ import * as yaml from "yaml";
 import { randomUUID } from "node:crypto";
 
 import { Chapter, GTBookMeta } from "./types";
-import { assert } from "console";
+import { metaFile } from "./constants";
 
-export const metaFile = "gtbook.yaml";
-
-export class GTBookService {
-  private _gtbookMeta?: GTBookMeta;
+export class GTBook {
+  private _meta?: GTBookMeta;
 
   private id2Pid: Map<string, string | null> = new Map();
   private id2Chapter: Map<string, Chapter> = new Map();
 
-  constructor(private gtbookMetaPath: string) {}
+  constructor(
+    public folderPath: string,
+    private gtbookMetaPath: string,
+    gtbookMetaContent: string,
+  ) {
+    this.gtbookMetaPath = path.join(this.folderPath, metaFile);
 
-  get gtbookMeta(): GTBookMeta {
-    if (!this._gtbookMeta) {
-      this.loadFromMetaFile();
+    this._meta = yaml.parse(gtbookMetaContent);
+
+    if (!this._meta) {
+      throw new Error("gtbook meta file is empty");
     }
 
-    assert(this._gtbookMeta, "加载gtbook.yaml失败");
-    return this._gtbookMeta!;
-  }
-
-  loadFromMetaFile() {
-    const gtbookMeta = yaml.parse(
-      fs.readFileSync(this.gtbookMetaPath, "utf-8"),
-    );
-
-    this._gtbookMeta = gtbookMeta;
-
-    if (!gtbookMeta.chapters) {
-      gtbookMeta.chapters = [];
+    if (!this._meta.chapters) {
+      this._meta.chapters = [];
     }
 
-    gtbookMeta.chapters.forEach((chapterInfo: any) => {
+    this._meta.chapters.forEach((chapterInfo: any) => {
       this._buildChapterItem(chapterInfo);
     });
-
-    return this._gtbookMeta;
   }
 
-  saveToMetaFile() {
-    this._gtbookMeta!.updatedTime = Date.now();
-    fs.writeFileSync(
+  get meta(): GTBookMeta {
+    return this._meta!;
+  }
+
+  async saveToMetaFile() {
+    this._meta!.updatedTime = Date.now();
+    await fsp.writeFile(
       this.gtbookMetaPath,
-      yaml.stringify(this._gtbookMeta),
+      yaml.stringify(this._meta),
       "utf-8",
     );
   }
 
   getTree(): Chapter[] {
-    return this.gtbookMeta.chapters || [];
+    return this.meta.chapters || [];
   }
 
   private _buildChapterItem(
@@ -99,7 +93,7 @@ export class GTBookService {
       chapter.chapters.push(newChapter);
       this.id2Pid.set(newChapter.id, chapter.id);
     } else {
-      this.gtbookMeta.chapters.push(newChapter);
+      this.meta.chapters.push(newChapter);
     }
     this.id2Chapter.set(newChapter.id, newChapter);
 
@@ -108,20 +102,21 @@ export class GTBookService {
 
     await fsp.mkdir(path.dirname(filePath), { recursive: true });
 
-    const content = `\n`;
+    const content = `# ${newTitle}`;
     await fsp.writeFile(filePath, content, "utf-8");
 
-    this.saveToMetaFile();
+    await this.saveToMetaFile();
+    return newChapter;
   }
 
-  deleteChapter(chapter: Chapter) {
+  async deleteChapter(chapter: Chapter) {
     this.id2Chapter.delete(chapter.id);
     let parent = this.getParent(chapter);
 
     if (parent) {
       this._removeChapterFromList(parent.chapters, chapter);
     } else {
-      this._removeChapterFromList(this.gtbookMeta.chapters, chapter);
+      this._removeChapterFromList(this.meta.chapters, chapter);
     }
 
     this.id2Pid.delete(chapter.id);
@@ -135,7 +130,7 @@ export class GTBookService {
     this.saveToMetaFile();
   }
 
-  renameChapter(chapterId: string, newTitle: string) {
+  async renameChapter(chapterId: string, newTitle: string) {
     const chapter = this.id2Chapter.get(chapterId);
     if (!chapter) {
       return;
@@ -144,16 +139,18 @@ export class GTBookService {
     this.saveToMetaFile();
   }
 
-  moveChapters(target: Chapter | undefined, sources: Chapter[]) {
-    if (!sources) {
+  async moveChapters(target: Chapter | undefined, chapterIds: string[]) {
+    if (!chapterIds) {
       return;
     }
-    let toMoveChapters = this._getLocalRoots(sources);
+
+    const chapters = chapterIds.map((id) => this.id2Chapter.get(id)!);
+    let toMoveChapters = this._getLocalRoots(chapters);
 
     if (!target) {
       // 把所有章节都移动到根目录
       const rootIdSet = new Set();
-      this._gtbookMeta!.chapters.forEach((r) => rootIdSet.add(r.id));
+      this._meta!.chapters.forEach((r) => rootIdSet.add(r.id));
       toMoveChapters = toMoveChapters.filter((r) => !rootIdSet.has(r.id));
       toMoveChapters.forEach((r) => this._reparentNode(r, target));
     } else {
@@ -170,9 +167,9 @@ export class GTBookService {
     this.saveToMetaFile();
   }
 
-  moveUp(chapter: Chapter) {
+  async moveUp(chapter: Chapter) {
     const parent = this.getParent(chapter);
-    const chapters = parent ? parent.chapters : this.gtbookMeta.chapters;
+    const chapters = parent ? parent.chapters : this.meta.chapters;
 
     const index = chapters.findIndex((c) => c.id === chapter.id);
     if (index <= 0) {
@@ -184,9 +181,9 @@ export class GTBookService {
     this.saveToMetaFile();
   }
 
-  moveDown(chapter: Chapter) {
+  async moveDown(chapter: Chapter) {
     const parent = this.getParent(chapter);
-    const chapters = parent ? parent.chapters : this.gtbookMeta.chapters;
+    const chapters = parent ? parent.chapters : this.meta.chapters;
 
     const index = chapters.findIndex((c) => c.id === chapter.id);
     if (index < 0 || index >= chapters.length - 1) {
@@ -196,13 +193,6 @@ export class GTBookService {
     chapters[index + 1] = chapter;
     chapters[index] = nextChapter;
     this.saveToMetaFile();
-  }
-
-  moveChaptersToRoot(toMoveChapters: Chapter[]) {
-    const rootIdSet = new Set();
-    this._gtbookMeta!.chapters.forEach((r) => rootIdSet.add(r.id));
-    toMoveChapters = toMoveChapters.filter((r) => !rootIdSet.has(r.id));
-    this._gtbookMeta!.chapters.push(...toMoveChapters);
   }
 
   _getLocalRoots(nodes: Chapter[]): Chapter[] {
@@ -230,17 +220,20 @@ export class GTBookService {
   }
 
   // Remove node from current position and add node to new target element
-  _reparentNode(node: Chapter, target: Chapter | undefined): void {
+  async _reparentNode(
+    node: Chapter,
+    target: Chapter | undefined,
+  ): Promise<void> {
     // 从老位置，移除节点
     const parent = this.getParent(node);
-    const chapters = parent ? parent.chapters : this.gtbookMeta.chapters;
+    const chapters = parent ? parent.chapters : this.meta.chapters;
     this._removeChapterFromList(chapters, node);
 
     // 在新位置插入节点
     if (target) {
       target.chapters.push(node);
     } else {
-      this.gtbookMeta.chapters.push(node);
+      this.meta.chapters.push(node);
     }
 
     this.id2Pid.set(node.id, target ? target.id : null);

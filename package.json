@@ -3,7 +3,7 @@
   "displayName": "gtbook-vscode",
   "description": "gtbook vscode extension",
   "publisher": "ganfan-tech",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -31,52 +31,55 @@
     "views": {
       "gtbook-explorer": [
         {
-          "id": "gtbook_toc",
-          "name": "GTBook Chapters"
-        },
-        {
-          "id": "gtbook_assets",
-          "name": "Assets Explorer"
+          "id": "gtbook_explorer",
+          "name": "GTBook Explorer",
+          "icon": "resources/icons/book.svg"
         }
       ]
     },
     "commands": [
       {
         "category": "GTBook",
+        "title": "New Book",
+        "command": "gtbook_explorer.newBook",
+        "icon": "resources/icons/book.svg"
+      },
+      {
+        "category": "GTBook",
         "title": "Refresh",
-        "command": "gtbook_toc.refresh",
+        "command": "gtbook_explorer.refresh",
         "icon": "resources/icons/refresh.svg"
       },
       {
         "category": "GTBook",
         "title": "Open Chapter",
-        "command": "gtbook_toc.openChapter"
+        "command": "gtbook_explorer.openChapter"
       },
       {
         "category": "GTBook",
         "title": "Rename Chapter",
-        "command": "gtbook_toc.renameChapter",
+        "command": "gtbook_explorer.renameChapter",
         "icon": "resources/icons/edit.svg"
       },
       {
         "category": "GTBook",
         "title": "New Chapter",
-        "command": "gtbook_toc.newChapter",
+        "command": "gtbook_explorer.newChapter",
         "icon": "resources/icons/document.svg"
       },
       {
         "category": "GTBook",
         "title": "Delete Chapter",
-        "command": "gtbook_toc.deleteChapter"
+        "command": "gtbook_explorer.deleteChapter"
       },
       {
-        "command": "gtbook_toc.moveUp",
+        "command": "gtbook_explorer.moveUp",
         "title": "Move Up",
         "category": "GTBook",
         "icon": "resources/icons/arrow_up.svg"
       },
       {
-        "command": "gtbook_toc.moveDown",
+        "command": "gtbook_explorer.moveDown",
         "title": "Move Down",
         "category": "GTBook",
         "icon": "resources/icons/arrow_down.svg"
@@ -85,56 +88,65 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "gtbook_toc.openChapter",
+          "command": "gtbook_explorer.openChapter",
           "when": "false"
         },
         {
-          "command": "gtbook_toc.renameChapter",
+          "command": "gtbook_explorer.newChapter",
           "when": "false"
         },
         {
-          "command": "gtbook_toc.deleteChapter",
+          "command": "gtbook_explorer.renameChapter",
           "when": "false"
         },
         {
-          "command": "gtbook_toc.moveUp",
+          "command": "gtbook_explorer.deleteChapter",
           "when": "false"
         },
         {
-          "command": "gtbook_toc.moveDown",
+          "command": "gtbook_explorer.moveUp",
+          "when": "false"
+        },
+        {
+          "command": "gtbook_explorer.moveDown",
           "when": "false"
         }
       ],
       "view/title": [
         {
-          "command": "gtbook_toc.refresh",
-          "when": "view == gtbook_toc",
+          "command": "gtbook_explorer.newBook",
+          "when": "view == gtbook_explorer",
           "group": "navigation"
         },
         {
-          "command": "gtbook_toc.newChapter",
-          "when": "view == gtbook_toc",
+          "command": "gtbook_explorer.refresh",
+          "when": "view == gtbook_explorer",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "gtbook_toc.renameChapter",
-          "when": "view == gtbook_toc && viewItem == chapter",
+          "command": "gtbook_explorer.newChapter",
+          "when": "view == gtbook_explorer",
           "group": "inline"
         },
         {
-          "command": "gtbook_toc.deleteChapter",
-          "when": "view == gtbook_toc && viewItem == chapter"
-        },
-        {
-          "command": "gtbook_toc.moveUp",
-          "when": "view == gtbook_toc && viewItem == chapter",
+          "command": "gtbook_explorer.renameChapter",
+          "when": "view == gtbook_explorer && viewItem == gtbook.chapter",
           "group": "inline"
         },
         {
-          "command": "gtbook_toc.moveDown",
-          "when": "view == gtbook_toc && viewItem == chapter",
+          "command": "gtbook_explorer.deleteChapter",
+          "when": "view == gtbook_explorer && viewItem == gtbook.chapter"
+        },
+        {
+          "command": "gtbook_explorer.moveUp",
+          "when": "view == gtbook_explorer && viewItem == gtbook.chapter",
+          "group": "inline"
+        },
+        {
+          "command": "gtbook_explorer.moveDown",
+          "when": "view == gtbook_explorer && viewItem == gtbook.chapter",
           "group": "inline"
         }
       ]

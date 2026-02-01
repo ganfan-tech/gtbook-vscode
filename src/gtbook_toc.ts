@@ -1,111 +1,179 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
-import * as path from "path";
-import * as yaml from "yaml";
-import { GTBookService } from "./gtbook_service";
+import { GTBook } from "./gtbook_service";
+import { GTBooks } from "./gtbooks";
 import { Chapter } from "./types";
 
-const metaFile = "gtbook.yaml";
-
-export class GTBookTOCProvider
+export class GTBooksProvider
   implements
-    vscode.TreeDataProvider<Chapter>,
-    vscode.TreeDragAndDropController<Chapter>
+    vscode.TreeDataProvider<TreeItemNode>,
+    vscode.TreeDragAndDropController<TreeItemNode>
 {
-  dropMimeTypes = [
-    "application/vnd.code.tree.dragAndDropPosition",
-    "application/vnd.code.tree.gtbook_toc",
-  ];
-  dragMimeTypes = ["text/uri-list"];
+  dropMimeTypes = ["application/vnd.code.tree.gtbook_explorer"];
+  dragMimeTypes = ["application/vnd.code.tree.gtbook_explorer"];
 
   private _onDidChangeTreeData: vscode.EventEmitter<
-    (Chapter | undefined)[] | undefined
-  > = new vscode.EventEmitter<(Chapter | undefined)[] | undefined>();
+    (TreeItemNode | undefined)[] | undefined
+  > = new vscode.EventEmitter<(TreeItemNode | undefined)[] | undefined>();
   // We want to use an array as the event type, but the API for this is currently being finalized. Until it's finalized, use any.
   public onDidChangeTreeData: vscode.Event<any> =
     this._onDidChangeTreeData.event;
 
-  public refresh(): void {
+  public refresh(node?: TreeItemNode): void {
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  constructor(private gtbookService: GTBookService) {}
+  constructor(public gtbooks: GTBooks) {}
 
-  getTreeItem(chapter: Chapter): vscode.TreeItem {
-    const item = new ChapterItem(chapter);
-
-    item.command = {
-      command: "gtbook_toc.openChapter",
-      title: "Open Chapter",
-      arguments: [chapter],
-    };
-
-    return item;
+  getTreeItem(element: TreeItemNode): vscode.TreeItem {
+    return element;
   }
 
-  getChildren(chapter?: Chapter): Thenable<Chapter[]> {
-    // 根目录
-    if (!chapter) {
-      return Promise.resolve(this.gtbookService.getTree());
+  getChildren(element?: TreeItemNode) {
+    // 根节点：workspace folders
+    if (!element) {
+      return this.gtbooks.listBooks().map((gtbook) => new BookNode(gtbook));
     }
 
-    // 子目录
-    return Promise.resolve(chapter.chapters);
+    // folder 下的章节
+    if (element instanceof BookNode) {
+      return element.gtbook
+        .getTree()
+        .map((chapter) => new ChapterNode(element.gtbook, chapter));
+    }
+
+    // chapter 下的章节
+    if (element instanceof ChapterNode) {
+      return element.chapter.chapters?.map(
+        (chapter) => new ChapterNode(element.gtbook, chapter),
+      );
+    }
+
+    return [];
+  }
+
+  getParent(element: TreeItemNode): vscode.ProviderResult<TreeItemNode> {
+    if (element instanceof BookNode) {
+      return undefined;
+    }
+
+    if (element instanceof ChapterNode) {
+      const gtbook = this.gtbooks.getBook(element.gtbook.folderPath);
+      if (!gtbook) {
+        return;
+      }
+      const parentChapter = gtbook.getParent(element.chapter);
+      if (!parentChapter) {
+        return new BookNode(element.gtbook);
+      } else {
+        return new ChapterNode(element.gtbook, parentChapter);
+      }
+    }
+
+    return undefined;
   }
 
   public async handleDrop(
-    target: Chapter | undefined,
+    target: TreeItemNode | undefined,
     dataTransfer: vscode.DataTransfer,
     _token: vscode.CancellationToken,
   ): Promise<void> {
     const transferItem = dataTransfer.get(
-      "application/vnd.code.tree.gtbook_toc",
+      "application/vnd.code.tree.gtbook_explorer",
     );
     if (!transferItem) {
       return;
     }
+    if (!target) {
+      return;
+    }
 
-    const isShiftPressed = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.options.cursorStyle // 兼容写法
-      : false;
-    console.log("isShiftPressed", isShiftPressed);
-    dataTransfer.forEach((value, key) => {
-      console.log(key, value);
-    });
-    const treeItems: Chapter[] = transferItem.value;
-    const positionItem = dataTransfer.get(
-      "application/vnd.code.tree.dragAndDropPosition",
+    const raw = await transferItem.asString();
+    const items = JSON.parse(raw) as Array<{
+      kind: string;
+      folderPath: string;
+      id?: string;
+    }>;
+
+    let targetBookFolderPath = target.gtbook.folderPath;
+    const isSameBook = items.every(
+      (item) => item.folderPath === targetBookFolderPath,
     );
-    console.log("positionItem", positionItem);
-    this.gtbookService.moveChapters(target, treeItems);
+    if (!isSameBook) {
+      vscode.window.showInformationMessage(`Cannot move chapters across books`);
+      return;
+    }
+
+    const targetBook = this.gtbooks.getBook(targetBookFolderPath);
+    if (!targetBook) {
+      return;
+    }
+
+    const chapters = items
+      .filter((item) => item.kind === "chapter")
+      .map((item) => item.id as string);
+
+    if (target instanceof BookNode) {
+      targetBook.moveChapters(undefined, chapters);
+    } else if (target instanceof ChapterNode) {
+      targetBook.moveChapters(target.chapter, chapters);
+    }
+
     this._onDidChangeTreeData.fire(undefined);
   }
 
   public async handleDrag(
-    source: Chapter[],
+    source: TreeItemNode[],
     dataTransfer: vscode.DataTransfer,
-    _token: vscode.CancellationToken,
-  ): Promise<void> {
-    console.log("22343234");
-
-    console.log(source);
+  ) {
+    const payload = source.map((s) =>
+      s instanceof ChapterNode
+        ? {
+            kind: "chapter",
+            folderPath: s.gtbook.folderPath,
+            id: s.chapter.id,
+          }
+        : {
+            kind: "book",
+            folderPath: s.gtbook.folderPath,
+          },
+    );
     dataTransfer.set(
-      "application/vnd.code.tree.gtbook_toc",
-      new vscode.DataTransferItem(source),
+      "application/vnd.code.tree.gtbook_explorer",
+      new vscode.DataTransferItem(JSON.stringify(payload)),
     );
   }
 }
 
-class ChapterItem extends vscode.TreeItem {
-  constructor(public node: Chapter) {
+export type TreeItemNode = BookNode | ChapterNode;
+
+export class BookNode extends vscode.TreeItem {
+  constructor(public readonly gtbook: GTBook) {
+    super(gtbook.meta.title, vscode.TreeItemCollapsibleState.Collapsed);
+    this.contextValue = "gtbook.book";
+
+    this.iconPath = new vscode.ThemeIcon("book");
+  }
+}
+
+export class ChapterNode extends vscode.TreeItem {
+  constructor(
+    public readonly gtbook: GTBook,
+    public readonly chapter: Chapter,
+  ) {
     super(
-      node.title,
-      node.chapters?.length > 0
+      chapter.title,
+      chapter.chapters?.length > 0
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None,
     );
-    this.id = node.id;
-    this.contextValue = "chapter";
-    this.tooltip = `${this.label}-${this.id}`;
+    this.contextValue = "gtbook.chapter";
+
+    this.command = {
+      command: "gtbook_explorer.openChapter",
+      title: "Open Chapter",
+      arguments: [this],
+    };
+
+    this.tooltip = `${this.gtbook.meta.title}-${this.label}`;
   }
 }
