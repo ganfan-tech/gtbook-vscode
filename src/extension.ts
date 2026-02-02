@@ -9,7 +9,7 @@ import { registerCommands } from "./gtbook_commands";
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "gtbook-vscode" is now active!');
-  const gtbookApp = new GTBookApp(vscode.workspace.workspaceFolders);
+  const gtbookApp = new GTBookApp();
   const gtbookProvider = new GTBookProvider(gtbookApp);
 
   const gtbookExplorerTreeView = vscode.window.createTreeView(

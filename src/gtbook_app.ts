@@ -7,6 +7,7 @@ import { metaFile } from "./constants";
 import { defaultGtbookYaml } from "./utils";
 
 export class GTBookApp {
+  private workspaceFolders: readonly vscode.WorkspaceFolder[] = [];
   private books = new Map<string, GTBook>();
 
   // 定义一个私有的发射器
@@ -14,16 +15,21 @@ export class GTBookApp {
   // 暴露只读的事件给外部订阅
   readonly onDataChanged = this._onDataChanged.event;
 
-  constructor(
-    private workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
-  ) {
+  constructor() {
     this.loadBooks();
+
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      this.loadBooks();
+    });
   }
 
   async loadBooks() {
-    if (!this.workspaceFolders) {
+    this.books.clear();
+    if (!vscode.workspace.workspaceFolders) {
       return;
     }
+
+    this.workspaceFolders = vscode.workspace.workspaceFolders;
 
     for (let folder of this.workspaceFolders) {
       const folderPath = folder.uri.fsPath;
